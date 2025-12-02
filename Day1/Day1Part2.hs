@@ -33,9 +33,18 @@ constructInstructionList = mapMaybe extractInstruction
 turnDial
     :: Int -- initial dial pos
     -> Instruction
-    -> Int -- final dial pos
-turnDial pos (Instruction L u) = wrap(pos - u)
-turnDial pos (Instruction R u) = wrap(pos + u)
+    -> (Int, Int) -- final dial pos, crossings
+turnDial pos (Instruction dir u ) =
+    let
+        step = case dir of
+            R -> 1
+            L -> -1 
+        raw = pos + step * u
+        final = wrap raw
+
+        crossings = length [ k | k <- [1..u], wrap (pos +  step * k) == 0]
+
+    in (final, crossings)
 
 wrap :: Int -> Int
 wrap x = (x `mod` 100 + 100) `mod` 100
@@ -47,11 +56,8 @@ executeInstructions
     -> Int -- final output of 0's counted
 executeInstructions [] _ acc = acc
 executeInstructions (instr : rest) pos acc =
-    case pos' of
-        0 -> executeInstructions rest pos' (acc + 1)
-        _ -> executeInstructions rest pos' acc
-    where
-        pos' = turnDial pos instr
+    let (pos', crosses) = turnDial pos instr
+    in executeInstructions rest pos' (acc + crosses)
 
 -- Main
 main :: IO ()
@@ -59,5 +65,4 @@ main = do
     contents <- readFile "input"
     let instructions = constructInstructionList $ lines contents
     let zeroCount = executeInstructions instructions 50 0
-    putStrLn contents
     print zeroCount

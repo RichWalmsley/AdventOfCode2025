@@ -59,5 +59,4 @@ main = do
     contents <- readFile "input"
     let instructions = constructInstructionList $ lines contents
     let zeroCount = executeInstructions instructions 50 0
-    putStrLn contents
     print zeroCount
